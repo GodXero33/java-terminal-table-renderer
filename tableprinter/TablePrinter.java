@@ -31,9 +31,10 @@ public class TablePrinter  {
 		return output;
 	}
 
-	public String getTable(Class<?> className, List<?> instances) {
+	public String getTable(Class<?> className, List<?> instances, List<String> columnHeaders) {
 		final List<String> declaredFields = Arrays.asList(className.getDeclaredFields()).stream().map(field -> field.getName()).toList();
 		final List<String> methodNames = declaredFields.stream().map(field -> "get" + Character.toUpperCase(field.charAt(0)) + field.substring(1)).toList();
+		final List<String> headers = columnHeaders == null ? declaredFields : columnHeaders;
 		final List<List<String>> data = new ArrayList<>();
 		final int cols = declaredFields.size();
 		final int rows = instances.size();
@@ -56,13 +57,13 @@ public class TablePrinter  {
 			data.add(row);
 		}
 
-		final List<Integer> maxWidths = this.getMaxWidths(declaredFields, data);
+		final List<Integer> maxWidths = this.getMaxWidths(headers, data);
 		final String hr = "+%s+".formatted(maxWidths.stream().map(width -> "-".repeat(width + 2)).collect(Collectors.joining("+")));
 		final StringBuilder outputBuilder = new StringBuilder(hr);
 
 		outputBuilder.append("\n| ");
 
-		IntStream.range(0, cols).mapToObj(i -> i).collect(Collectors.toList()).forEach(i -> outputBuilder.append(declaredFields.get(i) + " ".repeat(maxWidths.get(i) - declaredFields.get(i).length()) + " |" + (i == cols - 1 ? "" : " ")));
+		IntStream.range(0, cols).mapToObj(i -> i).collect(Collectors.toList()).forEach(i -> outputBuilder.append(headers.get(i) + " ".repeat(maxWidths.get(i) - headers.get(i).length()) + " |" + (i == cols - 1 ? "" : " ")));
 
 		outputBuilder.append('\n');
 		outputBuilder.append(hr);
@@ -77,5 +78,9 @@ public class TablePrinter  {
 		});
 
 		return outputBuilder.toString();
+	}
+
+	public String getTable(Class<?> className, List<?> instances) {
+		return this.getTable(className, instances, null);
 	}
 }
