@@ -84,7 +84,7 @@ public class SimpleTablePrinter {
 					final Method method = className.getMethod(methodNames.get(b));
 					final Object value = method.invoke(instances.get(a));
 
-					data[a][b] = value.toString();
+					data[a][b] = (value == null) ? "null" : value.toString();
 				} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException exception) {
 					System.err.println("Failed to invoke method '" + methodNames.get(b) + "' on class '" + className.getSimpleName() + "': " + exception.getMessage());
 					exception.printStackTrace();
