@@ -9,7 +9,7 @@ import java.util.stream.IntStream;
 
 public class SimpleTablePrinter {
 	private SimpleTablePrinterSettings settings;
-	private SettingAdjuster adjustSettings;
+	private final SettingAdjuster adjustSettings;
 	private String caption;
 
 	public SimpleTablePrinter() {
