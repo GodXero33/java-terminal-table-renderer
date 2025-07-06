@@ -1,5 +1,6 @@
-package tableprinter;
+package dev.godxero.smt.util;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -17,7 +18,6 @@ public class SimpleTablePrinter {
 	}
 
 	private static List<Integer> getMaxWidths(List<String> headers, String[][] data) {
-		final int rows = data.length;
 		final int cols = headers.size();
 
 		final List<Integer> output = IntStream.range(0, cols).mapToObj(_ -> 0).collect(Collectors.toList());
@@ -27,8 +27,8 @@ public class SimpleTablePrinter {
 
 			if (headerLen > output.get(a)) output.set(a, headerLen);
 
-			for (int b = 0; b < rows; b++) {
-				final int dataLen = data[b][a].length();
+			for (String[] datum : data) {
+				final int dataLen = datum[a].length();
 
 				if (dataLen > output.get(a)) output.set(a, dataLen);
 			}
@@ -70,8 +70,8 @@ public class SimpleTablePrinter {
 	}
 
 	public String getTable(Class<?> className, List<?> instances, List<String> columnHeaders) {
-		final SimpleTablePrinterSettings settings = this.getSettings();
-		final List<String> declaredFields = Arrays.asList(className.getDeclaredFields()).stream().map(field -> field.getName()).toList();
+		final SimpleTablePrinterSettings currentSettings = this.getSettings();
+		final List<String> declaredFields = Arrays.stream(className.getDeclaredFields()).map(Field::getName).toList();
 		final List<String> methodNames = declaredFields.stream().map(field -> "get" + Character.toUpperCase(field.charAt(0)) + field.substring(1)).toList();
 		final List<String> headers = columnHeaders == null ? declaredFields : columnHeaders;
 		final int cols = declaredFields.size();
@@ -93,8 +93,8 @@ public class SimpleTablePrinter {
 		}
 
 		final List<Integer> maxWidths = SimpleTablePrinter.getMaxWidths(headers, data);
-		final char columnSeparator = this.settings.getColumnSeparator();
-		final String[] rowSeparators = this.settings.getRowSeparator().split("");
+		final char columnSeparator = currentSettings.getColumnSeparator();
+		final String[] rowSeparators = currentSettings.getRowSeparator().split("");
 		final String hr = "%s%s%s".formatted(rowSeparators[0], maxWidths.stream().map(width ->rowSeparators[1].repeat(width + 2)).collect(Collectors.joining(rowSeparators[0])), rowSeparators[0]);
 		final StringBuilder outputBuilder = new StringBuilder();
 
@@ -112,8 +112,8 @@ public class SimpleTablePrinter {
 		}
 
 		outputBuilder.append("\n").append(columnSeparator);
-		
-		IntStream.range(0, cols).forEach(i -> outputBuilder.append(" ").append(SimpleTablePrinter.formatCell(headers.get(i), maxWidths.get(i), settings.getTextAlign())).append(" ").append(columnSeparator));
+
+		IntStream.range(0, cols).forEach(i -> outputBuilder.append(" ").append(SimpleTablePrinter.formatCell(headers.get(i), maxWidths.get(i), currentSettings.getTextAlign())).append(" ").append(columnSeparator));
 
 		outputBuilder.append('\n');
 		outputBuilder.append(hr);
@@ -123,7 +123,7 @@ public class SimpleTablePrinter {
 
 			outputBuilder.append("\n").append(columnSeparator);
 
-			IntStream.range(0, cols).forEach(i -> outputBuilder.append(" ").append(SimpleTablePrinter.formatCell(row[i], maxWidths.get(i), settings.getTextAlign())).append(" ").append(columnSeparator));
+			IntStream.range(0, cols).forEach(i -> outputBuilder.append(" ").append(SimpleTablePrinter.formatCell(row[i], maxWidths.get(i), currentSettings.getTextAlign())).append(" ").append(columnSeparator));
 
 			outputBuilder.append('\n');
 			outputBuilder.append(hr);
@@ -136,8 +136,6 @@ public class SimpleTablePrinter {
 		private String textAlign = "left";
 		private String rowSeparator = "+-";
 		private char columnSeparator = '|';
-
-		public SimpleTablePrinterSettings() {}
 
 		public String getTextAlign() {
 			return textAlign;
